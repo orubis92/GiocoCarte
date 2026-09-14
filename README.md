@@ -4,7 +4,6 @@ Gioco di carte ispirato a Yu-Gi-Oh!, giocabile nel browser (PWA), con avversario
 
 Progetto amatoriale non ufficiale. Yu-Gi-Oh! è un marchio di Konami.
 
-
 ## Avvio
 
 ```bash

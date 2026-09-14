@@ -66,6 +66,9 @@ export function Duel({ config, onExit }: Props) {
   const { state, legal, actor, isAiTurn, dispatch } = useDuel(config);
   const db = config.db;
   const [hover, setHover] = useState<CardData | null>(null);
+  // Su touch la carta da leggere è quella toccata per ultima: non viene mai
+  // azzerata dal mouseleave (che sul telefono scatta al tocco successivo).
+  const [inspect, setInspect] = useState<CardData | null>(null);
   const [selectedUid, setSelectedUid] = useState<number | null>(null);
   const [picks, setPicks] = useState<number[]>([]);
   const [showExtra, setShowExtra] = useState(false);
@@ -142,7 +145,11 @@ export function Duel({ config, onExit }: Props) {
   const clickCard = (c: CardInstance) => {
     const d = db[c.cardId];
     const hiddenToMe = c.controller !== me && (c.position === 'facedown' || c.faceDown) && c.owner !== me;
-    if (isMobile && d && !hiddenToMe) setHover(d);
+    if (isMobile && d && !hiddenToMe) {
+      setInspect(d);
+      // Fuori dal proprio turno il tocco non ha altre azioni: apre subito il testo.
+      if (!humanTurn) setMobileTab('card');
+    }
     if (!humanTurn) return;
     if (choice) {
       if (!choice.options.includes(c.uid)) return;
@@ -223,7 +230,7 @@ export function Duel({ config, onExit }: Props) {
             {renderZone(os.spellTrapZone, opp, 'st')}
             <div className="zone-with-field">
               {renderZone(os.monsterZone, opp, 'monster')}
-              <CardView card={os.fieldZone} data={os.fieldZone ? dataOf(os.fieldZone) : undefined} slotLabel="F" onHover={setHover} db={db} state={state} />
+              <CardView card={os.fieldZone} data={os.fieldZone ? dataOf(os.fieldZone) : undefined} slotLabel="F" onHover={setHover} onClick={os.fieldZone ? () => clickCard(os.fieldZone!) : undefined} db={db} state={state} />
             </div>
           </div>
 
@@ -234,7 +241,7 @@ export function Duel({ config, onExit }: Props) {
           {/* --- Giocatore --- */}
           <div className="side side-me">
             <div className="zone-with-field">
-              <CardView card={ps.fieldZone} data={ps.fieldZone ? dataOf(ps.fieldZone) : undefined} slotLabel="F" onHover={setHover} db={db} state={state} />
+              <CardView card={ps.fieldZone} data={ps.fieldZone ? dataOf(ps.fieldZone) : undefined} slotLabel="F" onHover={setHover} onClick={ps.fieldZone ? () => clickCard(ps.fieldZone!) : undefined} db={db} state={state} />
               {renderZone(ps.monsterZone, me, 'monster')}
             </div>
             {renderZone(ps.spellTrapZone, me, 'st')}
@@ -319,7 +326,7 @@ export function Duel({ config, onExit }: Props) {
           <div className="mobile-sheet-body" onClick={(e) => e.stopPropagation()}>
             <div className="sheet-handle" />
             {mobileTab === 'card' ? (
-              <CardDetail data={hover} />
+              <CardDetail data={inspect ?? hover} touch />
             ) : (
               <div className="log">
                 {state.log.slice(-60).reverse().map((l, i) => (

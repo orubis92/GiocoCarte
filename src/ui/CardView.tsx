@@ -97,12 +97,12 @@ export function CardView({ card, data, hidden, selected, highlight, attacking, t
 }
 
 /** Pannello di dettaglio della carta (immagine grande + testo). */
-export function CardDetail({ data }: { data: CardData | null }) {
+export function CardDetail({ data, touch }: { data: CardData | null; touch?: boolean }) {
   if (!data) {
     return (
       <div className="card-detail card-detail-empty">
         <div className="card-detail-ghost" />
-        <p>Passa il mouse su una carta per leggerne il testo.</p>
+        <p>{touch ? 'Tocca una carta sul tavolo o in mano, poi apri questa scheda per leggerne il testo.' : 'Passa il mouse su una carta per leggerne il testo.'}</p>
       </div>
     );
   }
